@@ -230,3 +230,7 @@ io.openems.edge.application/c:/
 
 ### Debian ###
 !tools/debian/**
+
+### Local IEA T18 configuration ###
+config/Timedata/InfluxDB/*
+io.openems.edge.application/EdgeApp.bndrun
