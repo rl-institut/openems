@@ -4,7 +4,7 @@ This docker compose setup provides:
 
  * [openems-ui](http://openems-ui.localhost/)
  * [InfluxDB](http://influxdb.localhost/)
- * [Grafana](http://grafana.localhost/)
+ * [Grafana](http://grafana.localhost/d/deav5oih4ej28f/openems?orgId=1&from=now-1h&to=now&timezone=browser&refresh=5s)
 
 To start, run ```docker compose up -d```. To stop it, run ```docker compose down```. To also remove all volumes and thus all data in influxdb, run ```docker compose down -v```.
 
