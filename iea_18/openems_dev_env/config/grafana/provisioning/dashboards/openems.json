@@ -17,7 +17,7 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "id": 1,
   "links": [],
   "panels": [
@@ -187,6 +187,22 @@
                   "fixedColor": "dark-orange",
                   "mode": "fixed"
                 }
+              },
+              {
+                "id": "displayName",
+                "value": "Minigrid load"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "meter3/ActivePower"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "PURE load"
               }
             ]
           }
@@ -218,11 +234,11 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"meter2/ActivePower\"\n    )\n  )",
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"meter2/ActivePower\"\n       or r._field == \"meter3/ActivePower\"\n    )\n  )",
           "refId": "A"
         }
       ],
-      "title": "Consumption (meter2)",
+      "title": "Consumption (meter2, meter3)",
       "type": "timeseries"
     },
     {
@@ -358,6 +374,138 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "fixed"
+          },
+          "custom": {
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "displayName": "state",
+          "mappings": [
+            {
+              "options": {
+                "from": -1,
+                "result": {
+                  "color": "transparent",
+                  "index": 0,
+                  "text": "undefined"
+                },
+                "to": -1
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 0,
+                "result": {
+                  "color": "dark-red",
+                  "index": 1,
+                  "text": "lock"
+                },
+                "to": 0
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 1,
+                "result": {
+                  "color": "dark-blue",
+                  "index": 2,
+                  "text": "regular"
+                },
+                "to": 1
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 2,
+                "result": {
+                  "color": "super-light-green",
+                  "index": 3,
+                  "text": "recommendation"
+                },
+                "to": 2
+              },
+              "type": "range"
+            },
+            {
+              "options": {
+                "from": 3,
+                "result": {
+                  "color": "dark-green",
+                  "index": 4,
+                  "text": "force-on"
+                },
+                "to": 3
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 6,
+      "options": {
+        "alignValue": "left",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.9,
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.3.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"ctrlIoHeatPump0/Status\"\n    )\n  )",
+          "refId": "A"
+        }
+      ],
+      "title": "PURE-State",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "mode": "palette-classic"
           },
           "custom": {
@@ -443,10 +591,10 @@
         ]
       },
       "gridPos": {
-        "h": 12,
+        "h": 6,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 18
       },
       "id": 5,
       "options": {
@@ -474,99 +622,6 @@
       ],
       "title": "PURE onStateTime",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "P951FEA4DE68E13C5"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "points",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 2,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 25,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 1,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.3.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n      r._field == \"_sum/EssDcChargeEnergy\"\n      or r._field == \"_sum/EssDcDischargeEnergy\"\n      or r._field == \"_sum/UnmanagedConsumptionActivePower\"\n      or r._field == \"meter0/ActiveConsumptionEnergy\"\n      or r._field == \"meter0/ActivePower\"\n    )\n  )",
-          "refId": "A"
-        }
-      ],
-      "title": "Sample metrics",
-      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -584,6 +639,6 @@
   "timezone": "browser",
   "title": "openEMS",
   "uid": "deav5oih4ej28f",
-  "version": 6,
+  "version": 16,
   "weekStart": ""
 }
