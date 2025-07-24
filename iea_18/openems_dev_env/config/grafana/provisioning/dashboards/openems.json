@@ -205,6 +205,30 @@
                 "value": "PURE load"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ess_charge_load"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "ESS Charge load"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total"
+              }
+            ]
           }
         ]
       },
@@ -234,8 +258,35 @@
             "type": "influxdb",
             "uid": "P951FEA4DE68E13C5"
           },
-          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"meter2/ActivePower\"\n       or r._field == \"meter3/ActivePower\"\n    )\n  )",
-          "refId": "A"
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"meter2/ActivePower\"\n     )\n  )",
+          "refId": "minigrid_load"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "hide": false,
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    r._field == \"_sum/EssActivePower\"\n  )\n  |> map(fn: (r) => ({\n      r with _value: if r._value < 0.0 then float(v: -r._value) else 0.0\n    })\n  )\n  |> rename(columns: {_value: \"ess_charge_load\"})\n  // Keep only the columns Grafana needs for plotting\n  |> keep(columns: [\"_time\", \"ess_charge_load\"])",
+          "refId": "ess_charge_load"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "hide": false,
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n        r._field == \"meter3/ActivePower\"\n    )\n  )",
+          "refId": "pure_load"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "hide": false,
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n      r._field == \"meter2/ActivePower\" or\n      r._field == \"meter3/ActivePower\" or\n      r._field == \"_sum/EssActivePower\"\n    )\n  )\n  // Conditionally map values before the sum\n  |> map(fn: (r) => ({\n      r with\n      _value:\n        if r._field == \"_sum/EssActivePower\" then\n          // If it is the ESS field, apply the special logic\n          (if r._value < 0.0 then float(v: -r._value) else 0.0)\n        else\n          // Otherwise, use the original value\n          float(v: r._value)\n    })\n  )\n  // Group data by time to combine fields\n  |> group(columns: [\"_time\"])\n  // Calculate the sum of the (now modified) values\n  |> sum()\n  // Set a new name for the resulting field\n  |> set(key: \"_field\", value: \"TotalActivePower\")\n  // Ungroup to create a single table\n  |> group()",
+          "refId": "total"
         }
       ],
       "title": "Consumption (meter2, meter3)",
@@ -622,6 +673,100 @@
       ],
       "title": "PURE onStateTime",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "P951FEA4DE68E13C5"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.3.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P951FEA4DE68E13C5"
+          },
+          "query": "from(bucket: \"openems\")\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\n  |> filter(fn: (r) =>\n    r._measurement == \"data\" and\n    (\n       r._field == \"_sum/EssSoc\"\n    )\n  )",
+          "refId": "A"
+        }
+      ],
+      "title": "ESS State of Charge",
+      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -632,13 +777,13 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "openEMS",
   "uid": "deav5oih4ej28f",
-  "version": 16,
+  "version": 27,
   "weekStart": ""
 }
